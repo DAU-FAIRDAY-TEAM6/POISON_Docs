@@ -72,6 +72,7 @@ RETURN batches, total, errorMessages;
 - 모든 review데이터를 조회한 후 각각 review데이터를 작성한 User와 POI(Business)를 찾아 연결하는 쿼리이다.
 - 한 review데이터를 처리할 때 198만개의 user데이터를 탐색해야 하고, 15만개의 poi데이터를 탐색해야 한다. 이 과정을 700만번 해야했기 때문에 몇 시간이 지나도 작업이 끝나질 않았다.
 - **위 문제를 Index를 걸어 해결하였다. **
-![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/eeea0127-b733-48a3-812f-34ffc5d701f4)
+- ![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/eeea0127-b733-48a3-812f-34ffc5d701f4)
 - 위와 같이 Index를 걸어 조회의 성능을 개선했다.
 - 몇시간이 지나도 끝나질 않던 작업이 10초도 걸리지 않는 시간으로 처리할 수 있었다.
+> 참고: https://neo4j.com/docs/cypher-manual/current/indexes/search-performance-indexes/managing-indexes/
