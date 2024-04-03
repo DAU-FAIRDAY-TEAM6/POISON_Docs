@@ -65,5 +65,53 @@ $ crontab -l
 - ![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/fed53dda-d13e-42f0-a75c-c5cd1c82c6d1)
 
 ### 로그 확인
-- 크론택이 정상적으로 실행되고 있는가의 로그를 확인하고 싶으면 아래와 같이 log기록을 추가하여 누적되는 기록을 확인한다. 
+- 크론탭이 정상적으로 실행되고 있는가의 로그를 확인하고 싶으면 아래와 같이 log기록을 추가하여 누적되는 기록을 확인한다.
+```
+* * * * * python3 /home/kevin/scheduler/batch.py >> /home/kevin/batch.log
+```
+- /home/kevin/batch.log에서 로그를 확인할 수 있다.
+- python 코드는 아래와 같이 작성하였다.
+``` python
+with open("/home/kevin/scheduler/result.txt", "w") as file:
+    for i in range(10):
+        file.write("test\n")
+```
 
+<br><br>
+- 크론탭 적용을 위해선 restart해줘야 한다.
+- 이때 sudo를 붙이니 적용되지 않았다.
+```
+service cron restart
+```
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/28e1a57f-be70-4780-ba8b-08bbf938b904)
+
+- 적용을 완료하고 나면 로그 파일이 생성된다.
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/3962fb82-6462-4374-a2e3-2800a4a754a4)
+- 크론탭이 실행 된 후엔 result.txt 결과 파일이 잘 생성된 것을 확인할 수 있었고 test로 내용 또한 채워져있었다.
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/38a8b488-ae5f-4440-bfbe-8f6890ac217f)
+
+
+
+### shell script 실행 후 다른 서버로 결과 파일 전송시켜주기
+- 신규 사용자가 새롭게 POI에 대한 리뷰를 작성한다면 ai 모델을 전체 재학습 시켜줘야 한다.
+- 따라서 ai 모델 학습 python 파일을 돌리고, 만들어진 결과를 스프링 서버 환경으로 전송시킬 생각이다.
+- 위 과정이 정상적으로 동작하는지 테스트 해보려 한다.
+<br><br>
+
+
+- test.sh 쉘 스크립트 생성
+```
+# python 파일 실행
+python3 /home/kevin/scheduler/batch.py
+
+# 파이썬 스크립트 실행 후 생성된 result.txt 파일을 xxx 호스트로 전송
+scp /home/kevin/scheduler/result.txt [user]@[ip]:/home/kevin
+```
+
+- crontab 스케줄러 등록
+```
+* * * * * bash /home/kevin/scheduler/test.sh >> /home/kevin/batch.log
+```
+
+- 여기까지 하면 crontab 작업은 끝났다.
+- 만든 test.sh 를 직접 실행시키면 목적지 서버의 비밀번호를 입력해야만 정상적으로 전송이 가능하다. 하지만 crontab에선 비밀번호를 입력해줄 수 없기 때문에 공개키를 적용해줘야 한다.
