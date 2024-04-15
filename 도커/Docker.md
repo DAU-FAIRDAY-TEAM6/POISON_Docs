@@ -34,3 +34,220 @@ VMware, VirtualBox와 같은 가상머신은 호스트 OS 위에 게스트 OS �
   - 가상 머신보다 더 가벼우며 효율적으로 실행
   - 이미지와 컨테이너 레이어를 사용하여 빠르게 생성되며, 실행 속도가 매우 빠름
   - 컨테이너는 호스트 운영체제의 커널을 공유하므로 가볍고 효율적으로 자원을 활용
+
+<br>
+결론만 얘기하면 기존 가상머신은 무겁고 느리지만, 도커 컨테이너는 가볍고 빠르게 실행되며 호스트의 운영체제의 커널을 공유하는 방식으로 동작한다는 것이다. 또한 컨테이너 기술은 애플리케이션 배포와 관리를 더 효율적으로 처리할 수 있는 방법을 제공한다. 
+<br><br>
+
+
+## 도커의 사용 목적
+### 환경 일치성
+다양한 환경에서 동일한 실행 환경을 보장한다. 개발 환경과 운영 환경의 차이로 인한 문제를 방지하며, 응용 프로그램을 어디서든 실행할 수 있다.
+
+### 편리한 배포
+도커 컨테이너는 이미지로 패키징되어 배포되므로, 어플리케이션 배포가 간단해진다. 이미지를 공유하거나 배포할 때 용이하며, 빠른 확장이 가능하다.
+
+### 격리된 환경
+도커는 각 컨테이너를 격리된 환경으로 실행하므로, 하나의 컨테이너에서 발생한 문제가 다른 컨테이너에 영향을 주지 않는다.
+
+### 자원 효율성
+가상 머신과 비교해 더 가볍고 빠르며, 호스트 시스템의 리소스를 효율적으로 활용할 수 있다.
+
+### 스케일링
+컨테이너 기반 아키텍처는 쉬운 스케일링이 가능하여 요구에 따라 응용 프로그램을 확장할 수 있다.
+
+<br>
+국 도커란 개발을 편하기 하기 위한 도구이다. 개발자에게 개발 환경 세팅이란 번거럽고 시간이 많이 소요되는 작업이다. 특히 여러 개발자가 협업을 하는 경우, 각자 다른 운영체제나 라이브러리 버전으로 인해 일관된 개발 환경을 유지하기 어려울 수 있다. 하지만 도커를 사용하면 각각의 프로젝트를 격리된 컨테이너로 실행하여 개발할 수 있다. 이로써 각자의 개발 환경을 구성하는 번거로움을 덜 수 있고, 더욱 효율적인 개발과 협업이 가능해지는 것이다.
+<br><br>
+
+
+## 도커 사용 에시
+**웹 개발** : 도커를 사용하여 웹 애플리케이션을 개발하면, 개발 환경을 동일하게 설정하고 다른 팀원과의 협업을 용이하게 할 수 있다. 개발 중인 애플리케이션의 서버, 데이터베이스, 캐싱 시스템 등을 각각의 도커 컨테이너로 실행하면 환경 일치성을 유지하면서 작업할 수 있다.
+
+
+**서버 개발** : 마이크로서비스 아키텍처에서는 각 서비스를 독립적인 도커 컨테이너로 구성하여 개발하고 배포할 수 있다. 각 서비스는 독립된 코드베이스와 종속성을 가지며, 개별적으로 스케일링이 가능하다.
+
+
+**AI 모델 개발** : AI 모델을 개발하고 배포할 때도 도커를 활용할 수 있다. 예를 들어, AI 모델을 실행하는 도커 컨테이너를 생성하고 배포할 수 있다. 이 컨테이너는 모델 추론을 수행하고, 필요한 라이브러리 및 종속성을 포함할 수 있다.
+
+
+<br><br>
+
+
+## 도커 이미지 && 도커 컨테이너
+### 도커 이미지(Docker Image)
+도커 이미지는 컨테이너를 만드는 데 사용되는 읽기 전용(Read-only) 템플릿이다.
+컨테이너 실행에 필요한 파일과 설정값 등을 포함하고 있는 도커파일을 만든 후 Dockerfile을 빌드 하여 이미지를 만든다.
+
+<br>
+
+### 도커 컨테이너(Docker Container)
+도커 이미지를 실행한 상태
+이미지로 컨테이너를 생성하면 이미지의 목적에 맞는 파일이 들어있는 파일 시스템과
+격리된 시스템 자원 및 네트워크를 사용할 수 있는 독립된 공간이 생성된다.
+이것을 도커 컨테이너라고 한다.
+도커 컨테이너는 읽기 전용인 이미지에 변경된 사항을 저장하는 컨테이너 계층(Layer)에 저장한다.
+
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/4690a59f-4b5c-4623-86f1-f31c47bfc6c9)
+도커 이미지를 도넛 레시피에 비유한다면, 도커 컨테이너는 해당 레시피를 이용해 만든 도넛으로 비유할 수 있다.
+**하나의 도넛 레시피에서 여러 가지 맛의 도넛을 만들 수 있는 것과 같이, 하나의 도커 이미지로 여러 개의 도커 컨테이너를 만들 수 있다.**
+또한, 기존의 도넛 레시피를 수정하게 되어도, 이미 기존 레시피로 만들어진 도넛에는 영향이 없듯이, 이처럼 도커 이미지를 변경해도 이미 실행 중인 도커 컨테이너에는 영향을 주지 않는다.
+
+<br>
+
+### 기본적인 도커 명령어
+```
+docker [대상] [액션]
+
+→ [대상] : container(생략 가능), image, volume, network 등
+
+→ [액션] : ls, inspect, start, run 등
+```
+
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/7460a4d5-8d70-4edf-b058-f4b569e49678)
+<br>
+
+- docker (container) create
+  - 컨테이너를 생성하고 자동으로 시작하지는 않음
+ 
+```
+root@DH:~# docker create --name testos centos
+Unable to find image 'centos:latest' locally
+latest: Pulling from library/centos
+a1d0c7532777: Pull complete
+Digest: sha256:a27fd8080b517143cbbbab9dfb7c8571c40d67d534bbdee55bd6c473f432b177
+Status: Downloaded newer image for centos:latest
+875366cc4662d6ccdc21dfbaa654ed3eee74bb54d6a2ce34333a62924f7e0272
+```
+
+centos 이미지를 사용해서 컨테이너를 생성해 주는 명령어이다.
+--name 옵션을 추가하여 컨테이너명은 testos로 설정
+→ name 옵션을 쓰지 않으면 임의의 name이 부여된다.
+
+이미 생성된 컨테이너의 컨테이너 명을 바꾸고 싶으면 docker rename [현재 이름] [바꿀 이름] 명령어를 사용한다.
+컨테이너 명을 변경하여도 컨테이너 ID는 변경되지 않는다.
+
+로컬 리포지토리에 이미지가 없으면 기본으로 docker hub에서 이미지를 pull 한다.
+한번 pull 한 이미지는 재사용이 가능하다.
+
+컨테이너를 생성할 때 옵션을 써줄 수도 있다.
+
+```
+docker create -it --name testos2 centos
+```
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/248a9788-62a2-4812-97f5-43ab2a081f7f)
+
+<br><br><br>
+
+- docker ps
+  - 실행(Up) 중인 컨테이너들의 목록을 확인
+  - docker container ls와 같음
+  - -a (all) 옵션을 함께 써주면 실행 중이지 않은 컨테이너를 포함하여 전체 컨테이너 목록을 출력합니다.
+
+```
+root@DH:~# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED          STATUS          PORTS     NAMES
+adb6732a399d   centos    "/bin/bash"   51 seconds ago   Up 50 seconds             testos2
+```
+
+
+```
+root@DH:~# docker ps -a
+CONTAINER ID   IMAGE     COMMAND       CREATED          STATUS          PORTS     NAMES
+adb6732a399d   centos    "/bin/bash"   55 seconds ago   Up 54 seconds             testos2
+875366cc4662   centos    "/bin/bash"   5 hours ago      Created                   testos
+```
+<br><br><br>
+
+- docker start
+  - 컨테이너를 시작(실행)
+  - 생성해둔 컨테이너를 시작할 수 있음
+
+ ```
+root@DH:~# docker start -ai testos
+[root@151f3b70b5a4 /]#
+```
+
+컨테이너(testos)를 시작하면서 -ai 옵션을 사용해 해당 컨테이너 내부로 접근하여 표준 입력을 받을 수 있도록 할 수 있다.
+
+해당 컨테이너에 접근한 상태로 exit 명령을 사용하면, /bin/bash가 종료되면서 컨테이너도 함께 종료된다.
+때문에 순차적으로 **Ctrl + P, Ctrl + Q** 를 눌러 컨테이너 실행 상태를 유지한 채로 빠져나온 후, 컨테이너가 실행 중(Up)인지 확인할 수 있다.
+<br><br><br>
+
+
+
+- docker stop
+  - 실행 중인 컨테이너를 종료
+
+```
+root@DH:~# docker stop testos
+testos
+```
+<br><br><br>
+
+- docker run
+  - 컨테이너를 시작하고 COMMAND를 실행
+  - 로컬에 이미지가 있다면 해당 이미지로 실행하고, 없으면 도커허브에서 다운로드 후 실행
+  - create + start
+
+```
+root@DH:~# docker run -dit --name test centos
+5d56fc765e3780fb06f5f3d5a66935e1a087087d7b9ab69e979e830773603a81
+
+root@DH:~# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED        STATUS        PORTS     NAMES
+5d56fc765e37   centos    "/bin/bash"   1 second ago   Up 1 second             test
+```
+<br><br><br>
+
+-d 옵션을 사용해 사용자가 직접 컨테이너 안으로 접근하지 않고, 컨테이너의 COMMAND를 백그라운드로 실행할 수 있다.
+컨테이너를 시작할 때, 명령어의 맨 뒤에 임의로 COMMAND를 정의할 수 있다.
+COMMAND(/bin/date)가 종료되면서 컨테이너도 함께 종료된 것을 확인할 수 있다.
+```
+root@DH:~# docker run -it --name date centos /bin/date
+Tue Jun 28 08:56:41 UTC 2022
+
+root@DH:~# docker ps -a
+CONTAINER ID   IMAGE     COMMAND       CREATED              STATUS                          PORTS     NAMES
+24a654120847   centos    "/bin/date"   About a minute ago   Exited (0) About a minute ago             date
+```
+<br><br><br>
+
+- docker logs
+  - 컨테이너의 PID=1 프로세스의 STDIN/STDOUT/STDERR를 출력 가능
+```
+root@DH:~# docker logs -f pingtest
+PING localhost (127.0.0.1) 56(84) bytes of data.
+64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.019 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.036 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=3 ttl=64 time=0.069 ms
+```
+<br><br><br>
+
+
+- docker cp
+  - 컨테이너와 호스트 간의 파일 복사'
+
+ ```
+root@DH:~# touch example.txt
+root@DH:~# ls
+example.txt
+
+root@DH:~# docker run -dit --name test centos
+5e43e97c988e78202f4d6dcb2b68b153c0a3c91e80ac2bdb5b8b7ae2a39f0592
+
+root@DH:~# docker ps -a
+CONTAINER ID   IMAGE     COMMAND       CREATED         STATUS         PORTS     NAMES
+5e43e97c988e   centos    "/bin/bash"   6 seconds ago   Up 5 seconds             test
+
+root@DH:~# docker cp ~/example.txt test:/
+
+root@DH:~# docker exec test /bin/ls example.txt
+example.txt
+
+root@DH:~# docker cp test:/example.txt ~/example2.txt
+
+root@DH:~# ls
+example.txt  example2.txt
+```
+
