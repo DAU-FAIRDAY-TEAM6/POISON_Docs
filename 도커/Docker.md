@@ -251,3 +251,127 @@ root@DH:~# ls
 example.txt  example2.txt
 ```
 
+
+<<br><<br><<br><<br>
+
+## 도커로 MySQL 띄우기
+```
+$ docker pull mysql
+```
+
+<br>
+
+```
+$ docker pull mysql
+Using default tag: latest
+latest: Pulling from library/mysql
+4be315f6562f: Pull complete
+96e2eb237a1b: Pull complete
+8aa3ac85066b: Pull complete
+ac7e524f6c89: Pull complete
+f6a88631064f: Pull complete
+15bb3ec3ff50: Pull complete
+ae65dc337dcb: Pull complete
+573c3c7fa18d: Pull complete
+9d10771b98b8: Pull complete
+3d8ef442614b: Pull complete
+7dc17a6cea26: Pull complete
+752752efdaea: Pull complete
+Digest: sha256:2dafe3f044f140ec6c07716d34f0b317b98f8e251435abd347951699f7aa3904
+Status: Downloaded newer image for mysql:latest
+```
+
+<br>
+다운로드한 도커 이미지를 확인해보자, 내 경우에는 도커 Desktop을 활용해서 설치 유무를 확인했는데, 이 경우가 아니라면 명령어로도 확인할 수 있다.
+
+- 아래는 도커 데스크탑을 활용하여 내가 설치한 Docker image 항목들이다.
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/0f0305b9-0dd1-45f5-9f6d-b3b91c4a70f1)
+
+
+- 명령어를 통한 Docker image 확인은 아래와 같다.
+```
+$ docker images
+REPOSITORY      TAG       IMAGE ID       CREATED      SIZE
+mysql           latest    96d0eae5ed60   9 days ago   524MB
+```
+
+이제 생성한 Mysql 이미지를 Container에 올려보도록하자.
+
+```
+$ docker run -it -e MYSQL_ROOT_PASSWORD=1234 -d -p 3308:3306 -v 내 로컬에 있는 폴더 경로:도커 폴더 경로 mysql
+```
+
+위에 작성한 명령어를 뜯어 보면 다음과 같다. 
+<br>
+
+run : 도커 이미지를 컨테이너로 생성하면서 실행을 동시에 해준다.
+
+-i : 컨테이너를 실행할 때 컨테이너 쪽 표준 입력과의 연결을 그대로 유지한다. 그러므로 컨테이너 쪽 셀에 들어가서 명령어를 실행할 수 있다.
+
+-t : 유사터미널 기능을 활성화하는 옵션이다. 여기서 i 옵션을 사용하지 않으면 유사 터미널을 실행해도 입력할 수가 없으므로 통상적으로 -it를 합쳐서 사용한다.
+
+-d : deamon 옵션으로서 도커가 백그라운드에서 계속 실행되게 한다.
+
+-p : 포트 옵션으로서 <로컬에서 접속하는 포트>:<도커쪽에서 열리는 포트> 즉 내쪽에서 3308 포트로 접속하면, 도커쪽에서 3306으로 들어가게 된다. 나는 로컬 DB가 3306포트를 사용중이라서 3308포트를 사용하여 접속했다.
+
+-v : 마운트 옵션으로서 내 로컬에 있는 폴더와 도커에 있는 폴더를 마운트 시켜준다. (마운트 옵션은 도커에 있는 데이터가 삭제되지 않고 꾸준히 관리되기를 원할때 걸어주는 옵션이므로 지속적으로 관리가 필요없는 경우는 없어도 무관하다)
+
+
+만약 -v 옵션 즉, 마운트 옵션을 제외하고 만들고 싶다면 아래와 같이 입력하면 된다.
+
+
+```
+$ docker run -it -e MYSQL_ROOT_PASSWORD=1234 -d -p 3308:3306 mysql
+```
+
+성공적으로 DB에 잘 연결되는 걸 확인할 수 있다. 
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/314faeee-ca4c-4a42-a959-35a5c78b79fb)
+
+
+<br><br><br><br>
+
+## Spring boot 컨테이너 생성 DB 연결
+> 아래 내용은 같은 network 에 mysql 컨테이너가 띄워져있다 가정하고 작성하였습니다. 
+
+### application.yml 작
+```
+server:
+  port: 8088
+spring:
+
+  profiles:
+    active: test
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://[컨테이너 이름]:3306/helloDev
+```
+- 기존의 localhost 대신 위에서 생성한 mysql-container의 이름을 넣어주어야 한다. 
+- 이름 대신에 mysql-container의 IP 주소를 입력해도 되지만 Docker의 DNS가 동적으로 매핑해주니 이름으로 사용
+
+
+### Docker file 작성
+```
+FROM openjdk:11-jre-slim
+
+WORKDIR /app
+
+# 빌드된 Spring Boot JAR 파일을 복사
+COPY build/libs/demo-0.0.1-SNAPSHOT.jar [jar이름].jar
+
+# JAR 파일 실행
+CMD ["java", "-jar", "[jar이름].jar"]
+```
+
+<br><br><br>
+
+### spring boot 이미지 생성 후 실행
+
+1. jar 파일 생성
+2. docker build -t hellodev-image . 해당 명령어를 입력하여 이미지 생성
+3. 위와 동일하게 생성한 네트워크를 옵션으로 주어 이미지 실행.
+  - docker run -d --name hellodev-container --network docker-network -p 8088:8088  hellodev-image
+4. docker network inspect docker-network 명렁어를 통해 spring boot, mysql 컨테이너가 생성한 네트워크에 속하는지 확인.
+
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/c933ded7-f0af-408c-92c6-84a979017069)
+
