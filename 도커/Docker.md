@@ -328,4 +328,50 @@ $ docker run -it -e MYSQL_ROOT_PASSWORD=1234 -d -p 3308:3306 mysql
 ![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/314faeee-ca4c-4a42-a959-35a5c78b79fb)
 
 
+<br><br><br><br>
+
+## Spring boot 컨테이너 생성 DB 연결
+> 아래 내용은 같은 network 에 mysql 컨테이너가 띄워져있다 가정하고 작성하였습니다. 
+
+### application.yml 작
+```
+server:
+  port: 8088
+spring:
+
+  profiles:
+    active: test
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://[컨테이너 이름]:3306/helloDev
+```
+- 기존의 localhost 대신 위에서 생성한 mysql-container의 이름을 넣어주어야 한다. 
+- 이름 대신에 mysql-container의 IP 주소를 입력해도 되지만 Docker의 DNS가 동적으로 매핑해주니 이름으로 사용
+
+
+### Docker file 작성
+```
+FROM openjdk:11-jre-slim
+
+WORKDIR /app
+
+# 빌드된 Spring Boot JAR 파일을 복사
+COPY build/libs/demo-0.0.1-SNAPSHOT.jar [jar이름].jar
+
+# JAR 파일 실행
+CMD ["java", "-jar", "[jar이름].jar"]
+```
+
+<br><br><br>
+
+### spring boot 이미지 생성 후 실행
+
+1. jar 파일 생성
+2. docker build -t hellodev-image . 해당 명령어를 입력하여 이미지 생성
+3. 위와 동일하게 생성한 네트워크를 옵션으로 주어 이미지 실행.
+  - docker run -d --name hellodev-container --network docker-network -p 8088:8088  hellodev-image
+4. docker network inspect docker-network 명렁어를 통해 spring boot, mysql 컨테이너가 생성한 네트워크에 속하는지 확인.
+
+![image](https://github.com/dgjinsu/POISON_Docs/assets/97269799/c933ded7-f0af-408c-92c6-84a979017069)
 
