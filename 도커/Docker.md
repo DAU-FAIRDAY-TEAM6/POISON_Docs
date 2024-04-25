@@ -333,7 +333,7 @@ $ docker run -it -e MYSQL_ROOT_PASSWORD=1234 -d -p 3308:3306 mysql
 ## Spring boot 컨테이너 생성 DB 연결
 > 아래 내용은 같은 network 에 mysql 컨테이너가 띄워져있다 가정하고 작성하였습니다. 
 
-### application.yml 작
+### application.yml 작성
 ```
 server:
   port: 8088
