@@ -72,3 +72,60 @@ mysql replication을 진행하기 전 다음과 같이 주의해야 하는 몇 �
 2. Replication을 사용하기에 MySQL 버전이 다른 경우 Slave 서버가 상위 버전이어야 한다.
 
 3. Replication을 가동시에 Master 서버, Slave 서버 순으로 가동시켜야 한다.
+
+
+## Ubuntu 환경에서 구성
+두 개의 우분투 환경에서 해보려다 간단하게 Docker를 사용해서 구성해보기로 했다.
+
+### master DB 생성
+master 컨테이너 실행 후 컨테이너 내부 접속, 설정 파일 수정을 위해 vim 설치
+
+vim 설치가 안 될 경우, 로컬에서 my.cnf를 생성해 docker cp로 넣어주자. 이미지 마다 apt를 지원해주는 이미지도 있고 아닌 것도 있다. 
+
+```
+$ docker run -p 3306 --name mysql-master -e MYSQL_ROOT_PASSWORD=1234 -d mysql:8-debian
+
+$ docker exec -it mysql-master /bin/bash
+
+$ apt-get update
+$ apt-get install -y vim
+```
+
+vi 명령어로 /etc/mysql/my.cnf 파일을 열고, 아래와 같이 2줄을 추가
+
+```
+log-bin=mysql-bin  
+server-id=1
+```
+
+log bin
+업데이트되는 모든 쿼리들이 Binary log 파일에 기록된다. 기본적으로 Binary log 파일은 MySQL의 data directory인 /var/lib/mysql/ 에 호스트명-bin.000001, 호스트명-bin.000002 형태로 생성된다.
+
+ 
+
+이때, log-bin 설정을 변경하면 Binary log 파일의 경로와 파일명의 접두어를 변경할 수 있다.
+
+위에선 log-bin=mysql이라 설정했기 때문에 mysql-bin.000001, mysql-bin.000002 이름으로로 Binary log 파일이 생성된다.
+
+ 
+
+server-id
+설정에서 서버를 식별하기 위한 고유 ID값이다. master, slave 각각 다르게 설정해야 한다.
+
+ 
+
+ 
+
+도커를 재시작하여 설정 변경 적용 후 도커 내부에 다시 접속하여 설정이 제대로 적용되었는지 확인
+
+```
+$ docker restart mysql-master
+
+$ docker exec -it mysql-master /bin/bash
+$ mysql -u root -p 
+mysql> SHOW MASTER STATUS\G
+```
+
+현재 바이너리 로그 파일명이고, Position은 현재 로그의 위치를 나타낸다.
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/7d307af4-9a89-4712-9a5f-b5e84d2c98b5)
