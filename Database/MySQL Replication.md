@@ -129,3 +129,35 @@ mysql> SHOW MASTER STATUS\G
 현재 바이너리 로그 파일명이고, Position은 현재 로그의 위치를 나타낸다.
 
 ![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/7d307af4-9a89-4712-9a5f-b5e84d2c98b5)
+
+### master DB에 계정 생성
+
+master DB에서 사용할 계정을 생성한다. 이 계정이 slave DB에서 복제할 예정이다. dgjinsu 라는 계정을 새로 생성하고, 모든 ip에 대해서 권한을 열어준다.
+
+```
+$ CREATE USER 'dgjinsu'@'%' IDENTIFIED BY '1234';
+
+//sha256_password
+$ ALTER USER 'dgjinsu'@'%' IDENTIFIED WITH mysql_native_password BY '1234';
+
+$ GRANT REPLICATION SLAVE ON *.* TO 'dgjinsu'@'%';
+
+$ FLUSH PRIVILEGES;
+```
+
+MySQL 5.8부터는 Password Auth방식이 caching_sha2_password 방식으로 변경되었다고 한다. 따라서 위와 같이 유저를 생성할 때 IDENTIFIED WITH mysql_native_password BY 로 생성해야한다. 그렇지 않으면 아래의 에러를 만날 수 있다.
+
+```
+error connecting to master 'replication
+user@mysql-primary:3306' - retry-time: 60 retries: 1 message: Authentication plugin 'caching
+sha2_password' reported error: Authentication requires secure connection.
+```
+
+전부 입력했다면 방금 생성된 계정이 보일 것이다.
+```
+$ SELECT User, Host FROM mysql.user;
+```
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/d1bb6f33-222a-4aa3-bb09-341eaa6aaabf)
+
+
