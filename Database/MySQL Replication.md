@@ -161,3 +161,82 @@ $ SELECT User, Host FROM mysql.user;
 ![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/d1bb6f33-222a-4aa3-bb09-341eaa6aaabf)
 
 
+database, table을 만들고 아무 데이터나 삽입해준다. 
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/0bad4cfa-1698-4b77-a52e-fe6fd6e4a7d3)
+
+master 컨테이너로 돌아와서, dump를 해준다.
+
+생성한 dump.sql 파일을 로컬 환경으로 가져와준다. 
+
+```
+$ mysqldump -u root -p bookclub > dump.sql // 컨테이너에서 실행
+ 
+$ docker cp mysql-master:dump.sql . // 로컬에서 실행
+```
+
+### 5.2 slave DB 생성
+
+```
+docker run -p 3306 --name mysql-slave -e MYSQL_ROOT_PASSWORD=1234 --link mysql-master -d docker.io/mysql
+```
+
+slave 컨테이너도 my.cnf 파일을 편집해주자
+
+위에서 했던 것처럼 vi 설치해준 후 아래와 같이 id를 설정해주자.
+
+```
+[mysqld]
+server-id=2
+```
+
+설정했다면 적용을 위해 docker 컨테이너를 restart
+
+ 
+
+ 
+
+로컬 환경에 옮겨뒀던 dump 파일을 slave 컨테이너로 복사하고, dump 파일을 적용해준다.
+
+```
+$ docker cp dump.sql mysql-slave:.
+$ docker exec -it mysql-slave /bin/bash
+ 
+$ mysql -u root -p
+mysql> CREATE DATABASE test;
+ 
+mysql> exit
+ 
+$ mysql -u root -p test < dump.sql
+```
+
+### 5.3 slave를 master와 연결
+master mysql에 접속해 SHOW MASTER STATUS\G 를 이용해 Position을 확인해준다. 
+
+혹은 SHOW BINARY LOG STATUS 을 사용하여 확인
+
+처음 확인했을 때 보다 증가한걸 확인할 수 있다. 
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/c3451384-9982-4b7c-9f87-3b51b341d6fa)
+
+MASTER_HOST : master 서버의 호스트명
+
+MASTER_USER : master 서버의 mysql에서 REPLICATION SLAVE 권한을 가진 User 계정의 이름
+
+MASTER_PASSWORD : master 서버의 mysql에서 REPLICATION SLAVE 권한을 가진 User 계정의 비밀번호 MASTER_LOG_FILE : master 서버의 바이너리 로그 파일명
+
+MASTER_LOG_POS : master 서버의 현재 로그의 위치
+
+<br><br>
+
+slave에서 연결정보를 조회해 보면, 아래와 같이 mysql-master와 연결된 정보가 나온다.
+
+위에서 얘기했던 두 가지 스레드인 Slave_IO 와 Slave_SQL 이 적상적으로 Running 되고 있는 것을 확인할 수 있다.
+
+```
+mysql> SHOW SLAVE STATUS\G
+```
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/135f5a38-5e53-4c5d-b156-e41c15b74d46)
+
+이제 Master 컨테이너로 들어가 테이블에 데이터를 하나 추가하면 slave에서도 잘 뜨는 것을 볼 수 있다. 
