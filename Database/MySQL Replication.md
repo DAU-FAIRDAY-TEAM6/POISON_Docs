@@ -50,7 +50,8 @@ DBMS의 부하 분산이다.
 
 
 ## 복제의 원리
-아래는 MySQL의 Master-Slave 복제 원리이다.
+아래는 MySQL의 Master-Slave 복제 원리이다. <br>
+
 ![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/f173acb8-e53a-4c2e-8082-3c153d455bc2)
 
 MySQL에서 복제는 바이너리 로그 파일에 데이터에 대한 모든 변경사항을 기록한다.
@@ -73,6 +74,7 @@ mysql replication을 진행하기 전 다음과 같이 주의해야 하는 몇 �
 
 3. Replication을 가동시에 Master 서버, Slave 서버 순으로 가동시켜야 한다.
 
+<br><br><br><br>
 
 ## Ubuntu 환경에서 구성
 두 개의 우분투 환경에서 해보려다 간단하게 Docker를 사용해서 구성해보기로 했다.
@@ -129,6 +131,7 @@ mysql> SHOW MASTER STATUS\G
 현재 바이너리 로그 파일명이고, Position은 현재 로그의 위치를 나타낸다.
 
 ![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/7d307af4-9a89-4712-9a5f-b5e84d2c98b5)
+<br><br>
 
 ### master DB에 계정 생성
 
@@ -174,6 +177,7 @@ $ mysqldump -u root -p bookclub > dump.sql // 컨테이너에서 실행
  
 $ docker cp mysql-master:dump.sql . // 로컬에서 실행
 ```
+<br><br>
 
 ### 5.2 slave DB 생성
 
@@ -209,6 +213,7 @@ mysql> exit
  
 $ mysql -u root -p test < dump.sql
 ```
+<br><br>
 
 ### 5.3 slave를 master와 연결
 master mysql에 접속해 SHOW MASTER STATUS\G 를 이용해 Position을 확인해준다. 
