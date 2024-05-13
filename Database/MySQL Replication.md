@@ -245,3 +245,117 @@ mysql> SHOW SLAVE STATUS\G
 ![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/135f5a38-5e53-4c5d-b156-e41c15b74d46)
 
 이제 Master 컨테이너로 들어가 테이블에 데이터를 하나 추가하면 slave에서도 잘 뜨는 것을 볼 수 있다. 
+
+<br><br><br><br>
+## SpringBoot에서 DataSource 분기
+데이터베이스 서버를 Source - Replica 로 이중화 하였으므로, 스프링부트에서 사용하는 DataSource도 Master-Slave 에 맞게 2개를 써야한다. readOnly = true 트랜잭션은 Slave DataSource를, readOnly = false 인 트랜잭션은 Master DataSource를 사용하도록 분기해야한다.
+
+
+<br>
+**application.yml**
+```
+spring:
+  datasource:
+    master:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: [url]
+      username: [username]
+      password: [password]
+    slave:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: [url]
+      username: [username]
+      password: [password]
+```
+<br>
+**DataBaseConfig.class**
+
+```
+@Configuration
+@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class}) // 스프링 부트의 자동 데이터베이스 구성을 비활성화
+@EnableTransactionManagement // 트랜잭션 관리를 활성화
+@EnableJpaRepositories(basePackages = {"test"}) // JPA 리포지토리를 활성화하고, 패키지 스캔 경로를 지정
+public class DataBaseConfig {
+ 
+    // 마스터 데이터베이스 설정을 위한 빈	
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.master")
+    public DataSource masterDataSource() {
+        return DataSourceBuilder.create().type(HikariDataSource.class).build();
+    }
+ 
+    // 슬레이브 데이터베이스 설정을 위한 빈
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.slave")
+    public DataSource slaveDataSource() {
+        return DataSourceBuilder.create().type(HikariDataSource.class).build();
+    }
+ 
+    // 라우팅
+    @Bean
+    public DataSource routingDataSource(@Qualifier("masterDataSource") DataSource master,
+                                        @Qualifier("slaveDataSource") DataSource slave) {
+        ReplicationRoutingDataSource routingDataSource = new ReplicationRoutingDataSource();
+ 
+        HashMap<Object, Object> sources = new HashMap<>();
+        sources.put(DATASOURCE_KEY_MASTER, master);
+        sources.put(DATASOURCE_KEY_SLAVE, slave);
+ 
+        routingDataSource.setTargetDataSources(sources);
+        routingDataSource.setDefaultTargetDataSource(master);
+ 
+        return routingDataSource;
+    }
+    // 데이터베이스에 접근하는 기본적인 데이터 소스를 설정
+    @Primary
+    @Bean
+    public DataSource dataSource(@Qualifier("routingDataSource") DataSource routingDataSource) {
+        return new LazyConnectionDataSourceProxy(routingDataSource);
+    }
+}
+```
+
+<br><br>
+### ReplicationRoutingDataSource.class
+Spring Boot에서 MySQL Replica를 이용해 트랜잭션에서 읽기 전용은 slave DB에서 처리하고, 
+
+쓰기는 master DB에서 처리하도록 설정해 보자. 
+
+ 
+
+이를 위해서 master, slave DB 중 어느 DB를 선택하는지 설정하는 AbstractRoutingDataSource와 읽기 전용 트랜잭션에 slave DB 가 커넥션 되도록 하는  LazyConnectionDataSourceProxy을 사용한다.
+
+ 
+
+ AbstractRoutingDataSource는 spring-jdbc 모듈에 포함되어 있는 클래스로, 여러 데이터소스를 등록하고 특정 상황에 원하는 데이터소스를 사용할 수 있도록 추상화한 클래스이다. 
+
+ 
+
+determineCurrentLookupKey() 메서드를 재정의하여, 읽기 전용일 경우 slave를, 아닌 경우 master를 반환하도록 해줬다.
+
+
+```
+@Slf4j
+public class ReplicationRoutingDataSource extends AbstractRoutingDataSource {
+    public static final String DATASOURCE_KEY_MASTER = "master";
+    public static final String DATASOURCE_KEY_SLAVE = "slave";
+ 
+    @Override
+    protected Object determineCurrentLookupKey() {
+    	// 현재 트랜잭션이 읽기 전용인지 확인
+        boolean isReadOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+        String dataSourceKey = (isReadOnly) ? DATASOURCE_KEY_SLAVE : DATASOURCE_KEY_MASTER;
+        log.info("Selected DataSource: {}", dataSourceKey);
+        return dataSourceKey;
+    }
+}
+```
+
+
+이렇게 트랜잭션에 따라 각자 다른 DB가 선택되는걸 확인할 수 있다. <br>
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/7475a2c4-ac1d-4c62-8593-96220c7fa2c8)
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/0319a97d-96ac-4d7e-862e-ac83a3b013b6)
+
+
