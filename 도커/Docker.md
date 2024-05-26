@@ -252,7 +252,7 @@ example.txt  example2.txt
 ```
 
 
-<<br><<br><<br><<br>
+<br><br><br><br>
 
 ## 도커로 MySQL 띄우기
 ```
