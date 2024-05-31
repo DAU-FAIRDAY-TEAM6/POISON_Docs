@@ -66,3 +66,47 @@ B+Tree는 DB의 인덱스를 위해 자식 노드가 2개 이상인 B-Tree를 �
 - 리프노드(데이터노드)만 인덱스와 함께 데이터(Value)를 가지고 있고, 나머지 노드(인덱스노드)들은 데이터를 위한 인덱스(Key)만을 갖는다. 
 - 리프노드들은 LinkedList로 연결되어 있다. 
 - 데이터 노드 크기는 인덱스 노드의 크기와 같지 않아도 된다.
+
+
+
+## 3. 클러스터링 인덱스 vs 논-클러스터링 인덱스
+
+클러스터링 인덱스와 논-클러스터링 인덱스는 아래 사진과 같이 예시를 들 수 있다. 
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/54f1011c-1dcc-466a-b66f-d1ad89af4399)
+
+우리는 따로 인덱스를 걸지 않아도 자연스럽게 index를 사용하고 있었다. 
+
+```
+CREATE TABLE member (
+    id		int		--> primary key
+    name	varchar(255),
+    email	varchar(255)	--> unique
+);
+```
+
+위와 같은 테이블이 있을 때 인덱스는 몇 개 일까?? 총 2개의 인덱스를 사용하고 있다. primary key 가 적용된 id는 클러스터링 인덱스, unique key 가 적용된 email 은 논-클러스터링 인덱스가 젹용되어있다. 
+
+
+- 클러스터링 인덱스
+
+위에서 만든 table에 어떠한 제약조건을 걸지 않고 순차적으로 데이터를 넣는다고 가정해보자. 
+
+데이터를 넣은 순서대로 테이블에 데이터가 쌓일 것이다. 
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/fad534f5-c4cf-4d04-999c-2af9355a6940)
+
+여기서 클러스터링 인덱스를 적용해보자. 아래 두 가지 방법 모두 클러스터링 인덱스를 걸 수 있다. 
+
+```
+ALTER TABLE member ADD CONSTRAINT pk_id PRIMARY KEY (id);
+```
+
+
+```
+ALTER TABLE member MODIFY COLUMN id int NOT NULL;
+ALTER TABLE member ADD CONSTRAINT nuq_id UNIQUE (id);
+```
+
+
+
