@@ -195,3 +195,34 @@ id 컬럼에 클러스터링 인덱스 + name 컬럼에 논클러스터링 인�
 2. where, join, order by 절에 자주 사용되는 컬럼
 3. insert, update, delete 가 자주 발생하지 않는 컬럼
 4. 규모가 작지 않은 테이블
+
+
+```
+카디널리티란?
+중복도가 ‘낮으면’ 카디널리티가 ‘높다’고 표현한다.
+
+중복도가 ‘높으면’ 카디널리티가 ‘낮다’고 표현한다.
+
+카디널리티는 전체 행에 대한 특정 컬럼의 중복 수치를 나타내는 지표이다.
+```
+
+아래 테이블의 각 카디널리티를 살펴보면 다음과 같다.
+
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/89bec388-2fd6-4147-a320-93e39bbb0f1b)
+
+
+여기서는 ID, 이름, 이메일 등이 좋은 인덱스가 될 수 있다. 
+
+
+## 6. 인덱스 성능 비교
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/ea703ba6-d596-4c49-887b-01825e9429c8)
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/89e20bf7-a266-4108-ab69-b0019e017d0d)
+
+
+
+Ref)
+<br>
+https://www.youtube.com/watch?v=edpYzFgHbqs
+<br>
+https://ittrue.tistory.com/331
