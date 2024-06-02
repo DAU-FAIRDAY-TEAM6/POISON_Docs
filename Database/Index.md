@@ -35,6 +35,7 @@
 
 따라서, 상황에 맞게 인덱스를 적절히 선택하고 생성하는 것이 가장 중요하다.
 
+<br><br><br><br>
 
 ## 2. 인덱스의 자료구조
 인덱스를 구현하기 위해서는 다양한 자료구조를 사용할 수 있는데, 가장 대표적인 해시 테이블과 B+Tree에 대해서 알아보자. 
@@ -52,6 +53,7 @@
 
 하지만 DB 인덱스에서 해시 테이블이 사용되는 경우는 제한적인데, 그러한 이유는 해시가 등호(=) 연산에만 특화되었기 때문이다. 해시 함수는 값이 1이라도 달라지면 완전히 다른 해시 값을 생성하는데, 이러한 특성에 의해 부등호 연산(>, <)이 자주 사용되는 데이터베이스 검색을 위해서는 해시 테이블이 적합하지 않다.
 
+<br><br>
 
 ### B+ Tree
 B+Tree는 DB의 인덱스를 위해 자식 노드가 2개 이상인 B-Tree를 개선시킨 자료구조이다.
@@ -67,7 +69,7 @@ B+Tree는 DB의 인덱스를 위해 자식 노드가 2개 이상인 B-Tree를 �
 - 리프노드들은 LinkedList로 연결되어 있다. 
 - 데이터 노드 크기는 인덱스 노드의 크기와 같지 않아도 된다.
 
-
+<br><br><br><br>
 
 ## 3. 클러스터링 인덱스 vs 논-클러스터링 인덱스
 
@@ -87,8 +89,9 @@ CREATE TABLE member (
 
 위와 같은 테이블이 있을 때 인덱스는 몇 개 일까?? 총 2개의 인덱스를 사용하고 있다. primary key 가 적용된 id는 클러스터링 인덱스, unique key 가 적용된 email 은 논-클러스터링 인덱스가 젹용되어있다. 
 
+<br><br>
 
-- 클러스터링 인덱스
+### 클러스터링 인덱스
 
 위에서 만든 table에 어떠한 제약조건을 걸지 않고 순차적으로 데이터를 넣는다고 가정해보자. 
 
@@ -108,5 +111,48 @@ ALTER TABLE member MODIFY COLUMN id int NOT NULL;
 ALTER TABLE member ADD CONSTRAINT nuq_id UNIQUE (id);
 ```
 
+- 인덱스 적용 후
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/a64b9b15-4445-46aa-b5de-22e6165727ec)
 
 
+**특징**
+
+- 실제 데이터 자체가 정렬
+- 테이블당 1개만 존재 가능
+- 리프 페이지가 데이터 페이지
+- 아래의 제약조건 시 자동 생성
+ - primary key (우선순위)
+ - unique + not null
+
+<br><br>
+
+### 논-클러스터링 인덱스
+
+마찬가지로 정렬되어있지 않은 데이터에 name으로 논-클러스터링 인덱스를 걸어보자. 
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/78113ba8-f82b-4373-b385-5781a7299399)
+
+아래 세 가지 방법 모두 클러스터링 인덱스를 걸 수 있다. 
+
+```
+ALTER TABLE member ADD CONSTRAINT unq_name UNIQUE (name);
+ 
+CREATE UNIQUE INDEX unq_idx_name ON member (name);
+ 
+CREATE INDEX idx_name ON member (name);
+```
+
+- 인덱스 적용 후
+
+![image](https://github.com/DAU-FAIRDAY-TEAM6/POISON_Docs/assets/97269799/acb37495-0ccd-4fb0-92ea-94c793f4b893)
+
+**특징**
+
+- 실제 데이터 페이지는 그대로 존재
+- 별도의 인덱스 페이지 생성 => 추가 공간 필요
+- 테이블당 여러 개 존재
+- 리프 페이지에 실제 데이터 페이지 주소를 담고 있음
+- 아래의 제약조건 시 자동 생성
+ - uinique 제약 조건 적용 시 자동 생성
+ - 직접 index 생성 시 논-클러스터링 인덱스 생성
